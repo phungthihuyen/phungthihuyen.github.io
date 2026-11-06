@@ -16,9 +16,8 @@ const SITE = {
   linkedin: "https://www.linkedin.com/in/emmaphungthihuyen/",
   facebook: "https://www.facebook.com/phung.huyen.285671/",
 
-  // Số điện thoại được tách thành nhiều mảnh để các chương trình quét web
-  // (bot gửi spam) khó thu thập. Người xem bấm "Hiện số" thì mới ghép lại.
-  phoneParts: ["0375", "559", "466"],
+  // Mã QR Zalo: thay file assets/img/zalo-qr.png bằng ảnh QR Zalo của bạn (giữ nguyên tên file).
+  zaloQr: "assets/img/zalo-qr.png",
 
   // Khi bạn đã tải file CV (PDF) lên thư mục assets/, điền đường dẫn vào đây,
   // ví dụ: "assets/CV-Phung-Thi-Huyen.pdf". Để trống thì nút "Tải CV" sẽ ẩn.
@@ -83,16 +82,22 @@ const CONTENT = {
       footer: "© 2026 Phùng Huyền"
     },
 
-    slogan: "Mình học bằng cách thử, và lớn lên nhờ kết nối.",
-
     hero: {
       recruiter: {
-        sub: "Business Development tại Haposoft. Sinh viên năm cuối Quản trị Kinh doanh Quốc tế, Đại học Ngoại thương.",
+        facts: [
+          { icon: "cap", text: "Sinh viên năm cuối, Đại học Ngoại thương" },
+          { icon: "star", label: "GPA", text: "3.74" }
+        ],
         primary: { label: "Xem kinh nghiệm", target: "experience" },
         secondary: { label: "Liên hệ", target: "contact" }
       },
       other: {
-        sub: "Mình thích đi đây đó, đọc truyện, xem phim và làm quen với những người mới.",
+        facts: [
+          { icon: "cake", label: "Ngày sinh", text: "10/12/2005" },
+          { icon: "sagit", label: "Cung", text: "Nhân Mã" },
+          { icon: "person", label: "Tính cách nổi bật", text: "hướng nội, cầu toàn" },
+          { icon: "rumor", label: "Rumor", text: "nhìn ngoài thấy khó gần, và thực tế là khó gần thật :)" }
+        ],
         primary: { label: "Xem sở thích", target: "hobbies" },
         secondary: { label: "Làm quen", target: "contact" }
       }
@@ -121,9 +126,9 @@ const CONTENT = {
       recruiter: {
         title: "Giới thiệu",
         paragraphs: [
-          "Mình là Phùng Thị Huyền, sinh viên năm cuối ngành Quản trị Kinh doanh Quốc tế tại Đại học Ngoại thương, GPA 3.74/4.0.",
-          "Hiện mình làm Business Development tại Haposoft: chăm sóc hơn 100 liên hệ và 7 deal, cùng các phòng ban chuẩn bị proposal, báo giá và demo sản phẩm cho khách hàng.",
-          "Mình ham học hỏi và trải nghiệm, thích kết nối với mọi người, chăm chỉ và luôn muốn tiến bộ hơn mỗi ngày."
+          "Là sinh viên năm cuối chuyên ngành Quản trị Kinh doanh Quốc tế tại Đại học Ngoại thương, với GPA hiện tại 3.74, tôi vẫn đang trên hành trình tìm kiếm con đường sự nghiệp phù hợp với bản thân.",
+          "Tôi có kinh nghiệm ở các vị trí Business Development, Teaching Assistant, English Teacher và Customer Service Officer. Tôi ham học hỏi, cầu tiến, giỏi lắng nghe và thích ứng nhanh.",
+          "Tôi đang tìm kiếm những công việc thiên về giao tiếp và tương tác với con người, có sự luân chuyển giữa các phòng ban."
         ],
         chips: ["GPA 3.74/4.0", "IELTS 7.0", "HSK 4", "Học bổng khuyến khích 3 kỳ"]
       },
@@ -177,13 +182,13 @@ const CONTENT = {
           title: "Business Development",
           org: "Haposoft",
           period: "07/2026 – nay",
-          tag: "Toàn thời gian",
+          tag: "Full-time",
           bullets: [
-            "Theo dõi và chăm sóc hơn 100 liên hệ và 7 deal tại Việt Nam, Hồng Kông cùng một số thị trường khác; cập nhật đầy đủ thông tin khách hàng và tình trạng từng deal.",
-            "Phối hợp với các phòng ban chuẩn bị proposal, báo giá và thực hiện 3 buổi demo sản phẩm cho khách hàng.",
+            "Theo dõi và chăm sóc hơn 100 liên hệ và 9 qualified deal tại Việt Nam, Hồng Kông cùng một số thị trường khác; cập nhật đầy đủ thông tin khách hàng và tình trạng từng deal.",
+            "Phối hợp với các phòng ban chuẩn bị proposal, báo giá và thực hiện 5 buổi demo sản phẩm cho khách hàng.",
             "Thiết kế infographic và tài liệu proposal bằng Canva và các công cụ AI."
           ],
-          chips: ["100+ liên hệ", "7 deal", "3 buổi demo"],
+          chips: ["100+ liên hệ", "9 qualified deal", "5 buổi demo"],
           media: "haposoft",
           current: true
         },
@@ -192,7 +197,7 @@ const CONTENT = {
           title: "Trợ giảng Tiếng Anh",
           org: "The English Connection",
           period: "07/2024 – 09/2026",
-          tag: "Bán thời gian",
+          tag: "Part-time",
           bullets: [
             "Hỗ trợ giáo viên bản xứ trước và trong giờ học: chuẩn bị học liệu phù hợp với từng nhóm học viên, điểm danh và quản lý lớp.",
             "Hỗ trợ học viên sau buổi học: báo cáo tình hình đi học và bài tập trong nhóm phụ huynh, giải đáp thắc mắc của phụ huynh và ghi hình buổi học.",
@@ -205,7 +210,7 @@ const CONTENT = {
           title: "Nhân viên Bán hàng và Chăm sóc khách hàng",
           org: "KidZania Hà Nội",
           period: "01/2025",
-          tag: "Bán thời gian",
+          tag: "Part-time",
           bullets: ["Tư vấn và bán vé vào cửa cho khách hàng Việt Nam và quốc tế."],
           art: "compass"
         },
@@ -214,7 +219,7 @@ const CONTENT = {
           title: "Nhân viên Chăm sóc khách hàng",
           org: "Lotte Mall West Lake",
           period: "10/2024 – 12/2024",
-          tag: "Bán thời gian",
+          tag: "Part-time",
           bullets: ["Trực booth, mời khách hàng tải ứng dụng để tích điểm đổi quà; hỗ trợ các sự kiện theo mùa (Halloween, Ngày Phụ nữ)."],
           art: "chat"
         },
@@ -290,14 +295,14 @@ const CONTENT = {
       title: "Sở thích",
       intro: "Bấm vào từng ô để xem thêm nhé.",
       items: [
-        { id: "travel", title: "Du lịch", art: "planet", text: "Mình thích đến những nơi mới, gặp những người mới và nghe những câu chuyện mới." },
+        { id: "travel", title: "Du lịch", art: "planet", text: "Mình thích đến những nơi mới, gặp những người mới và nghe những câu chuyện mới. Mình đặc biệt thích những nơi có nền ẩm thực đa dạng, và rất mê xem food review. Nếu muốn xem mình review đồ ăn, bạn để lại link Locket ở phần Liên hệ nhé :)" },
         { id: "reading", title: "Đọc truyện", art: "book", text: "Mình thích đắm chìm trong những câu chuyện hay." },
-        { id: "movies", title: "Xem phim", art: "film", text: "Mình thích xem phim, và càng thích trò chuyện về những điều đọng lại sau khi xem." },
-        { id: "chat", title: "Chat chit với bạn bè", art: "chat", text: "Một buổi tám chuyện với bạn bè luôn là cách mình nạp lại năng lượng." },
-        { id: "connect", title: "Kết nối và giao lưu", art: "link", text: "Mình thích làm quen, trao đổi và học hỏi từ những người xung quanh." },
-        { id: "ideas", title: "Truyền đạt ý tưởng", art: "spark", text: "Mình thích biến một ý tưởng trong đầu thành điều người khác hiểu được và hào hứng cùng." },
-        { id: "sport", title: "Bơi và cầu lông", art: "wave", text: "Bơi và cầu lông là hai môn mình thích. Mình đang tìm partner, bạn nào muốn rủ thì nhắn mình nhé!" },
-        { id: "explore", title: "Khám phá và học hỏi", art: "compass", text: "Mình luôn tò mò về những điều mới và thích thử những việc mình chưa từng làm." }
+        { id: "movies", title: "Xem phim", art: "film", text: "Mình thích xem phim, đặc biệt là phim hồi xưa, xưa ơi là xưa :)). Mình ít xem phim hiện đại hơn dù hiệu ứng rất đẹp. Có lẽ mình bị ảnh hưởng bởi việc đọc truyện: đọc truyện khiến mình liên tưởng cốt truyện và nhân vật tốt hơn. Dạo gần đây mình đang cày lại bộ Sam Sam đến rồi. Trương Hàn là mối tình đầu của mình :)" },
+        { id: "chat", title: "Chat chit với bạn bè", art: "chat", text: "Ai chơi thân với mình mới thấy mình khùng khùng điên điên, hơi trẩu tre. Mình sống thật với những người mình thoải mái khi ở cùng hihi." },
+        { id: "connect", title: "Kết nối và giao lưu", art: "link", text: "Mình thích làm quen, trao đổi và học hỏi từ những người xung quanh: thầy cô nè, đồng nghiệp nè, bạn bè nè." },
+        { id: "ideas", title: "Truyền đạt ý tưởng", art: "spark", text: "Mình có một nghịch lý nhỏ: hướng nội nhưng lại thích nêu ý kiến cá nhân, thích bàn luận, thậm chí debate nảy lửa về một vấn đề nào đó. Không biết do mình hướng nội nửa mùa hay đó vốn là hai phạm trù khác nhau nữa :>" },
+        { id: "sport", title: "Bơi và cầu lông", art: "wave", text: "Khoe tí là mình đăng ký 10 buổi bơi ếch nhưng kết thúc khóa mình biết luôn bơi sải :). Bất ngờ chưa, dù hơi hấp hối nhưng mình bơi được hết bể hehe. Mình cũng khá thích cầu lông nhưng chưa tìm được partner chơi cùng. Bạn cũng đang tìm thì ới mình nhó." },
+        { id: "explore", title: "Khám phá và học hỏi", art: "compass", text: "Mình luôn tò mò về những điều mới và thích thử những việc mình chưa từng làm, ví dụ như lập cái profile này nè. Nói thật là mình không code một dòng nào, vibe coding hết thôi kakak." }
       ]
     },
 
@@ -308,20 +313,20 @@ const CONTENT = {
         {
           id: "life-gec",
           title: "Cùng CLB Kinh tế Toàn cầu",
-          text: "Mình từng là thành viên Ban Truyền thông của CLB: viết bài, thiết kế poster và lên kế hoạch cho cả chiến dịch G'Contest.",
+          text: "Mình từng là thành viên Ban Truyền thông của CLB: mình viết bài, thiết kế poster và lên kế hoạch cho các cuộc thi, sự kiện của CLB như G'Talk, G'Contest. Bên dưới có một vài ấn phẩm do tự mình thiết kế. Nhìn đơn giản nhưng tốn thời gian của mình lắm đó. Hậu quả của sự cố chấp theo đuổi thứ mình không giỏi :))",
           media: "gec",
           cover: "gec-gcontest.jpg"
         },
         {
           id: "life-events",
           title: "Làm cộng tác viên sự kiện",
-          text: "Mình từng hỗ trợ sự kiện Trung thu \"Trẩy hội trăng rằm\" và Hội thảo của Khoa Kinh tế Quốc tế.",
+          text: "Mình từng hỗ trợ sự kiện Trung thu \"Trẩy hội trăng rằm\" và Hội thảo của Khoa Kinh tế Quốc tế. Mình chưa tham gia sự kiện tình nguyện chính thức nào, cũng hơi tiếc, một phần vì hồi đó lười, không muốn lao động gì cả, ôi tuổi trẻ.",
           art: "moon"
         },
         {
           id: "life-moments",
           title: "Khoảnh khắc đời thường",
-          text: "Vài tấm ảnh trong những ngày bình thường của mình.",
+          text: "Vài tấm ảnh trong những ngày bình thường của mình. Hai đứa trong ảnh cuối bất ngờ không bà già khi thấy mình trong góc nhỏ của PH :))",
           media: "moments",
           cover: "life-3.jpg"
         }
@@ -331,10 +336,9 @@ const CONTENT = {
     contact: {
       titleRecruiter: "Liên hệ",
       titleOther: "Làm quen",
-      introRecruiter: "Bạn muốn trao đổi về cơ hội hợp tác? Gửi mình vài dòng, mình sẽ phản hồi sớm.",
-      introOther: "Bạn muốn làm quen, rủ mình đi chơi, hay chơi cầu lông cùng? Nhắn mình nhé!",
-      showPhone: "Hiện số điện thoại",
-      channels: { linkedin: "LinkedIn: Emma Phùng", facebook: "Facebook", email: "Email", phone: "Điện thoại" },
+      introRecruiter: "Bạn muốn trao đổi về cơ hội hợp tác? Gửi tôi vài dòng, tôi sẽ phản hồi sớm.",
+      introOther: "Đừng ngần ngại để lại tín hiệu vũ trụ rằng bạn đã ghé thăm góc nhỏ của mình nha. Muốn xem mình review đồ ăn thì nhớ để lại link Locket của bạn nhé!",
+      channels: { linkedin: "LinkedIn: Emma Phùng", facebook: "Facebook", email: "Email", zalo: "Zalo" },
       form: {
         name: "Họ và tên",
         email: "Email",
@@ -343,11 +347,19 @@ const CONTENT = {
         message: "Lời nhắn",
         send: "Gửi lời nhắn",
         sending: "Đang gửi…",
-        sent: "Đã gửi. Cảm ơn bạn, mình sẽ phản hồi sớm nhé!",
-        failed: "Chưa gửi được. Bạn thử lại sau, hoặc nhắn mình qua LinkedIn hoặc Email nhé.",
+        sentRecruiter: "Đã gửi. Cảm ơn bạn, tôi sẽ phản hồi sớm.",
+        sentOther: "Đã gửi. Cảm ơn bạn, mình sẽ phản hồi sớm nhé!",
+        failedRecruiter: "Chưa gửi được. Bạn thử lại sau, hoặc liên hệ tôi qua LinkedIn hoặc Email.",
+        failedOther: "Chưa gửi được. Bạn thử lại sau, hoặc nhắn mình qua Facebook, Zalo hoặc Email nhé.",
         mailto: "Ứng dụng email của bạn sẽ mở ra với nội dung đã điền sẵn. Bạn bấm gửi để hoàn tất nhé.",
         subjectRecruiter: "Liên hệ từ nhà tuyển dụng qua portfolio",
         subjectOther: "Lời nhắn từ portfolio"
+      },
+      zalo: {
+        title: "Kết nối Zalo với Huyền",
+        hint: "Mở Zalo, chọn biểu tượng quét mã QR rồi quét mã bên dưới. Nếu đang xem trên điện thoại, bạn có thể lưu ảnh QR rồi chọn quét từ thư viện ảnh.",
+        missing: "Mã QR đang được cập nhật, bạn quay lại sau nhé.",
+        back: "Về trang chủ"
       }
     }
   },
@@ -378,16 +390,22 @@ const CONTENT = {
       footer: "© 2026 Phùng Huyền"
     },
 
-    slogan: "I learn by trying, and grow by connecting.",
-
     hero: {
       recruiter: {
-        sub: "Business Development at Haposoft. Final-year International Business Administration student at Foreign Trade University.",
+        facts: [
+          { icon: "cap", text: "Final-year student, Foreign Trade University" },
+          { icon: "star", label: "GPA", text: "3.74" }
+        ],
         primary: { label: "See my experience", target: "experience" },
         secondary: { label: "Contact", target: "contact" }
       },
       other: {
-        sub: "I like travelling, reading stories, watching films and meeting new people.",
+        facts: [
+          { icon: "cake", label: "Birthday", text: "10 December 2005" },
+          { icon: "sagit", label: "Zodiac", text: "Sagittarius" },
+          { icon: "person", label: "Standout traits", text: "introverted, perfectionist" },
+          { icon: "rumor", label: "Rumor", text: "looks hard to approach, and honestly, that's true :)" }
+        ],
         primary: { label: "See my interests", target: "hobbies" },
         secondary: { label: "Say hi", target: "contact" }
       }
@@ -416,9 +434,9 @@ const CONTENT = {
       recruiter: {
         title: "About",
         paragraphs: [
-          "I'm Phùng Thị Huyền, a final-year student in International Business Administration at Foreign Trade University, with a GPA of 3.74/4.0.",
-          "I currently work in Business Development at Haposoft: I manage over 100 contacts and 7 deals, and work with other teams to prepare proposals, quotations and product demos for clients.",
-          "I love learning and trying new things, enjoy connecting with people, work hard, and always want to improve a little more each day."
+          "I'm a final-year student in International Business Administration at Foreign Trade University, with a current GPA of 3.74. I'm still on the journey of finding the career path that suits me best.",
+          "I have experience as a Business Development associate, Teaching Assistant, English Teacher and Customer Service Officer. I'm eager to learn, driven, a good listener and quick to adapt.",
+          "I'm looking for roles built around communication and interaction with people, with opportunities to rotate across departments."
         ],
         chips: ["GPA 3.74/4.0", "IELTS 7.0", "HSK 4", "3 semesters of academic scholarship"]
       },
@@ -474,11 +492,11 @@ const CONTENT = {
           period: "07/2026 – present",
           tag: "Full-time",
           bullets: [
-            "Track and nurture over 100 contacts and 7 deals in Vietnam, Hong Kong and several other markets; keep client information and deal status fully up to date.",
-            "Work with other departments to prepare proposals and quotations, and delivered 3 product demos for clients.",
+            "Track and nurture over 100 contacts and 9 qualified deals in Vietnam, Hong Kong and several other markets; keep client information and deal status fully up to date.",
+            "Work with other departments to prepare proposals and quotations, and delivered 5 product demos for clients.",
             "Design infographics and proposal documents with Canva and AI tools."
           ],
-          chips: ["100+ contacts", "7 deals", "3 demos"],
+          chips: ["100+ contacts", "9 qualified deals", "5 demos"],
           media: "haposoft",
           current: true
         },
@@ -585,14 +603,14 @@ const CONTENT = {
       title: "Interests",
       intro: "Tap any tile to see more.",
       items: [
-        { id: "travel", title: "Travelling", art: "planet", text: "I like going to new places, meeting new people and hearing new stories." },
+        { id: "travel", title: "Travelling", art: "planet", text: "I love going to new places, meeting new people and hearing new stories. I'm especially drawn to places with a rich food scene, and I love watching food reviews. Want to see my food reviews? Leave your Locket link in the Contact section :)" },
         { id: "reading", title: "Reading stories", art: "book", text: "I like getting lost in a good story." },
-        { id: "movies", title: "Watching films", art: "film", text: "I like watching films, and even more talking about what stays with me afterwards." },
-        { id: "chat", title: "Chatting with friends", art: "chat", text: "A good chat with friends is always how I recharge." },
-        { id: "connect", title: "Connecting and socialising", art: "link", text: "I like meeting people, exchanging ideas and learning from those around me." },
-        { id: "ideas", title: "Sharing ideas", art: "spark", text: "I like turning an idea in my head into something others can understand and get excited about." },
-        { id: "sport", title: "Swimming and badminton", art: "wave", text: "Swimming and badminton are my two favourite sports. I'm looking for a partner, so message me if you'd like to join!" },
-        { id: "explore", title: "Exploring and learning", art: "compass", text: "I'm always curious about new things and like trying what I've never done before." }
+        { id: "movies", title: "Watching films", art: "film", text: "I love watching films, especially the old ones, like really, really old :)). I watch fewer modern films even though their effects look amazing. Maybe it's because of reading: stories train me to picture plots and characters better. Lately I've been re-watching “Sam Sam Đến Rồi”. Zhang Han is my first crush :)" },
+        { id: "chat", title: "Chatting with friends", art: "chat", text: "Only my close friends know how silly and a bit goofy I really am. I'm my true self with the people I feel comfortable around, hehe." },
+        { id: "connect", title: "Connecting and socialising", art: "link", text: "I love meeting people, exchanging ideas and learning from those around me: teachers, colleagues and friends alike." },
+        { id: "ideas", title: "Sharing ideas", art: "spark", text: "Here's my little paradox: I'm an introvert, yet I love sharing my opinions, discussing, even having a fiery debate about some topic. I can't tell if I'm a half-baked introvert or if those are just two different things :>" },
+        { id: "sport", title: "Swimming and badminton", art: "wave", text: "Brag time: I signed up for 10 breaststroke lessons and, by the end of the course, I somehow learned freestyle too :). Surprise! A bit breathless, but I made it across the whole pool hehe. I also quite like badminton but haven't found a partner to play with yet. If you're looking too, hit me up!" },
+        { id: "explore", title: "Exploring and learning", art: "compass", text: "I'm always curious about new things and love trying what I've never done before, like building this profile. Honestly, I didn't write a single line of code, it's all vibe coding hahaha." }
       ]
     },
 
@@ -603,20 +621,20 @@ const CONTENT = {
         {
           id: "life-gec",
           title: "With the Global Economics Club",
-          text: "I was a member of the club's Communications Team: writing posts, designing posters and planning the whole G'Contest campaign.",
+          text: "I was a member of the club's Communications Team: I wrote posts, designed posters and planned the club's contests and events like G'Talk and G'Contest. Below are a few pieces I designed myself. They look simple but took me a lot of time. A consequence of stubbornly pursuing something I'm not good at :))",
           media: "gec",
           cover: "gec-gcontest.jpg"
         },
         {
           id: "life-events",
           title: "Volunteering at events",
-          text: "I supported the Mid-Autumn event \"Trẩy hội trăng rằm\" and a seminar of the Faculty of International Economics.",
+          text: "I supported the Mid-Autumn event \"Trẩy hội trăng rằm\" and a seminar of the Faculty of International Economics. I never joined an official volunteering event, which I regret a little, partly because back then I was too lazy to do any labour at all. Ah, youth.",
           art: "moon"
         },
         {
           id: "life-moments",
           title: "Everyday moments",
-          text: "A few photos from my ordinary days.",
+          text: "A few photos from my ordinary days. The two in the last photo would be surprised to see me in this little corner of PH :))",
           media: "moments",
           cover: "life-3.jpg"
         }
@@ -627,9 +645,8 @@ const CONTENT = {
       titleRecruiter: "Contact",
       titleOther: "Say hi",
       introRecruiter: "Want to talk about an opportunity? Send me a few lines and I'll reply soon.",
-      introOther: "Want to say hi, hang out, or play badminton together? Message me!",
-      showPhone: "Show phone number",
-      channels: { linkedin: "LinkedIn: Emma Phùng", facebook: "Facebook", email: "Email", phone: "Phone" },
+      introOther: "Don't hesitate to leave a signal across the universe that you stopped by my little corner. If you'd like to see my food reviews, leave your Locket link too!",
+      channels: { linkedin: "LinkedIn: Emma Phùng", facebook: "Facebook", email: "Email", zalo: "Zalo" },
       form: {
         name: "Full name",
         email: "Email",
@@ -638,11 +655,19 @@ const CONTENT = {
         message: "Message",
         send: "Send message",
         sending: "Sending…",
-        sent: "Sent. Thank you, I'll reply soon!",
-        failed: "Couldn't send. Please try again later, or reach me through LinkedIn or Email.",
+        sentRecruiter: "Sent. Thank you, I'll reply soon.",
+        sentOther: "Sent. Thank you, I'll reply soon!",
+        failedRecruiter: "Couldn't send. Please try again later, or reach me through LinkedIn or Email.",
+        failedOther: "Couldn't send. Please try again later, or message me on Facebook, Zalo or Email.",
         mailto: "Your email app will open with the details filled in. Press send to finish.",
         subjectRecruiter: "Recruiter message via portfolio",
         subjectOther: "Message from portfolio"
+      },
+      zalo: {
+        title: "Connect with Huyền on Zalo",
+        hint: "Open Zalo, tap the QR scanner and scan the code below. On a phone, save the QR image and choose to scan from your photo library.",
+        missing: "The QR code is being updated, please check back soon.",
+        back: "Back to home"
       }
     }
   }

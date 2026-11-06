@@ -18,8 +18,15 @@
 <body>
   <a id="skip-link" class="skip" href="#main"></a>
 
-  <!-- Nền bầu trời sao (vẽ bằng canvas) -->
+  <!-- Nền: dải ngân hà (CSS), bầu trời sao (canvas) và các hành tinh lơ lửng -->
+  <div class="nebula" aria-hidden="true"></div>
   <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="planets" id="planets" aria-hidden="true">
+    <div class="planet p1"><span class="planet-body"><i class="sphere"></i></span></div>
+    <div class="planet p2"><span class="planet-body"><i class="sphere"></i></span></div>
+    <div class="planet p3"><span class="planet-body"><i class="sphere"></i></span></div>
+    <div class="planet p4"><span class="planet-body"><i class="sphere"></i></span></div>
+  </div>
 
   <!-- Màn khảo sát đầu trang: nội dung do assets/js/main.js dựng -->
   <div id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title"></div>

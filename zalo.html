@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zalo | Phùng Huyền</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#04050d">
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    /* Trang riêng cho mã QR Zalo: dùng lại nền vũ trụ của trang chính */
+    .zalo-stars {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        radial-gradient(1.2px 1.2px at 20px 30px, #fff, transparent),
+        radial-gradient(1px 1px at 90px 120px, #dfe6ff, transparent),
+        radial-gradient(1.6px 1.6px at 160px 60px, #fff, transparent),
+        radial-gradient(1px 1px at 210px 170px, #ffd9ee, transparent),
+        radial-gradient(1.2px 1.2px at 120px 20px, #cdf4ff, transparent),
+        radial-gradient(1px 1px at 60px 190px, #fff, transparent);
+      background-size: 240px 220px; opacity: 0.7;
+    }
+    .zalo-wrap { position: relative; z-index: 2; min-height: 100svh; display: grid; place-items: center; padding: 2rem 1.25rem; }
+    .zalo-card { width: min(460px, 100%); text-align: center; }
+    .zalo-card img.logo { width: 72px; height: 72px; border-radius: 50%; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2), 0 0 40px rgba(139, 92, 246, 0.6); }
+    .zalo-card h1 { font: 800 clamp(1.7rem, 6vw, 2.3rem) / 1.1 var(--font-display); margin: 1rem 0 0.5rem; text-shadow: 0 0 36px rgba(139, 92, 246, 0.55); }
+    .zalo-card p { color: var(--muted); margin: 0 auto 1.4rem; max-width: 38ch; }
+    .qr-frame { display: inline-block; padding: 14px; border-radius: 24px; background: #fff; box-shadow: 0 0 0 4px rgba(77, 225, 255, 0.35), 0 20px 60px rgba(0, 0, 0, 0.55), 0 0 70px rgba(139, 92, 246, 0.45); }
+    .qr-frame img { display: block; width: min(280px, 68vw); height: auto; image-rendering: pixelated; }
+    .qr-missing { margin: 0 auto 1.4rem; padding: 1.2rem; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
+    .zalo-card .btn { margin-top: 1.6rem; }
+  </style>
+</head>
+<body>
+  <div class="nebula" aria-hidden="true"></div>
+  <div class="zalo-stars" aria-hidden="true"></div>
+
+  <main class="zalo-wrap" id="main">
+    <div class="zalo-card">
+      <img class="logo" src="assets/img/logo.png" alt="" width="72" height="72">
+      <h1 id="zalo-title"></h1>
+      <p id="zalo-hint"></p>
+      <div id="qr-slot"></div>
+      <a class="btn btn-ghost" id="zalo-back" href="./"></a>
+    </div>
+  </main>
+
+  <script src="assets/js/content.js"></script>
+  <script>
+    (function () {
+      // Chọn ngôn ngữ: ưu tiên ?lang= trên đường link, rồi đến lựa chọn đã lưu, cuối cùng theo trình duyệt.
+      var q = new URLSearchParams(location.search).get("lang");
+      var saved = null;
+      try { saved = localStorage.getItem("lang"); } catch (e) { /* bỏ qua */ }
+      var lang = q === "en" || q === "vi" ? q : saved === "en" || saved === "vi" ? saved : (navigator.language || "vi").toLowerCase().indexOf("vi") === 0 ? "vi" : "en";
+      var Z = CONTENT[lang].contact.zalo;
+      document.documentElement.lang = lang;
+      document.title = "Zalo | Phùng Huyền";
+      document.getElementById("zalo-title").textContent = Z.title;
+      document.getElementById("zalo-hint").textContent = Z.hint;
+      document.getElementById("zalo-back").textContent = Z.back;
+
+      var slot = document.getElementById("qr-slot");
+      var frame = document.createElement("div");
+      frame.className = "qr-frame";
+      var img = document.createElement("img");
+      img.alt = lang === "vi" ? "Mã QR Zalo của Huyền" : "Huyền's Zalo QR code";
+      img.src = SITE.zaloQr;
+      img.addEventListener("error", function () {
+        var m = document.createElement("p");
+        m.className = "qr-missing";
+        m.textContent = Z.missing;
+        slot.replaceChildren(m);
+      });
+      frame.appendChild(img);
+      slot.appendChild(frame);
+    })();
+  </script>
+</body>
+</html>

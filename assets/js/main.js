@@ -92,17 +92,45 @@
     down: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
 
+  // Icon nét mảnh cho các dòng "thông tin nhanh" ở đầu trang (mỗi icon một đoạn SVG)
+  const FACT_OPEN = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">';
+  const FACT_ICON = {
+    cap: FACT_OPEN + '<path d="M2 9l10-5 10 5-10 5z" fill="none"/><path d="M6 11.5V16c0 1.2 2.7 3 6 3s6-1.8 6-3v-4.5" fill="none"/><path d="M22 9v6" fill="none"/></svg>',
+    star: FACT_OPEN + '<path d="M12 3l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 17l-5.6 3 1.3-6.2L3 9.5l6.3-.7z" fill="none"/></svg>',
+    cake: FACT_OPEN + '<path d="M4 20h16v-6a2 2 0 00-2-2H6a2 2 0 00-2 2z" fill="none"/><path d="M4 16c2 1.5 3.5 1.5 4 0 .8 1.5 3 1.5 4 0 1 1.5 3 1.5 4 0 .5 1.5 2 1.5 4 0" fill="none"/><path d="M12 12V8M12 8c-1 0-1.5-1-1.5-2S12 3.5 12 3.5 13.5 5 13.5 6 13 8 12 8z" fill="none"/></svg>',
+    sagit: FACT_OPEN + '<path d="M5 19L19 5" fill="none"/><path d="M10 5h9v9" fill="none"/><path d="M7.5 11.5l5 5" fill="none"/></svg>',
+    person: FACT_OPEN + '<circle cx="12" cy="8" r="3.5" fill="none"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" fill="none"/><path d="M19 3l.7 1.6 1.6.7-1.6.7L19 7.6l-.7-1.6-1.6-.7 1.6-.7z" fill="none"/></svg>',
+    rumor: FACT_OPEN + '<path d="M4 5h16v11H9l-5 4z" fill="none"/><circle cx="9" cy="10.5" r="1" fill="none"/><circle cx="12.5" cy="10.5" r="1" fill="none"/><circle cx="16" cy="10.5" r="1" fill="none"/></svg>'
+  };
+
   /* === 3. Bầu trời sao (canvas) ========================================= */
-  // Vẽ sao nhấp nháy trôi rất chậm. Khi người xem chọn vai trò, sao "lướt nhanh" khoảng 1 giây
-  // (hiệu ứng bay qua vũ trụ) rồi chậm lại: đây là khoảnh khắc chuyển cảnh chính của trang.
+  // Gồm 3 lớp: (1) dải ngân hà là hàng nghìn hạt bụi sao nhỏ xếp chéo màn hình, vẽ một lần;
+  // (2) các ngôi sao có kích cỡ, màu và độ sáng khác nhau, mỗi sao có quầng sáng và nhấp nháy;
+  // (3) khi người xem chọn vai trò, sao "lướt nhanh" khoảng 1 giây rồi chậm lại.
 
   const sky = (() => {
     const canvas = $("#sky");
     const ctx = canvas.getContext("2d");
     const IDLE = reduceMotion ? 0 : 0.000008; // tốc độ trôi bình thường
     const WARP = 0.0022; // tốc độ khi lướt nhanh
-    const COLORS = ["#ffffff", "#ffffff", "#d6defe", "#ffd9ee", "#cdf4ff", "#ffeab5"];
+    const PALETTE = [[255, 255, 255], [255, 255, 255], [214, 222, 254], [255, 217, 238], [205, 244, 255], [255, 234, 181]];
+    const rgb = (c) => `rgb(${c[0]},${c[1]},${c[2]})`;
     let w = 0, hgt = 0, f = 0, stars = [], speed = IDLE, target = IDLE, last = 0, timer = 0;
+    let band = null;
+    const sprites = PALETTE.map((c) => {
+      // Một hình tròn mờ dần ra rìa: dùng làm "quầng sáng" quanh ngôi sao.
+      const cv = document.createElement("canvas");
+      cv.width = cv.height = 64;
+      const g = cv.getContext("2d");
+      const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},1)`);
+      grad.addColorStop(0.16, `rgba(${c[0]},${c[1]},${c[2]},0.5)`);
+      grad.addColorStop(0.45, `rgba(${c[0]},${c[1]},${c[2]},0.12)`);
+      grad.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 64, 64);
+      return cv;
+    });
 
     function spawn(anywhere) {
       return {
@@ -110,8 +138,35 @@
         y: Math.random() * 2 - 1,
         z: anywhere ? Math.random() * 0.97 + 0.03 : 1,
         tw: Math.random() * Math.PI * 2,
-        color: COLORS[(Math.random() * COLORS.length) | 0]
+        tws: 0.0012 + Math.random() * 0.003,
+        ci: (Math.random() * PALETTE.length) | 0,
+        big: Math.random() < 0.14 // một số sao lớn hơn, sáng hơn để bầu trời có chiều sâu
       };
+    }
+
+    // Dải ngân hà: nhiều hạt bụi sao dày ở giữa dải, thưa dần ra hai bên.
+    function makeBand(dpr) {
+      band = document.createElement("canvas");
+      band.width = Math.round(w * dpr);
+      band.height = Math.round(hgt * dpr);
+      const b = band.getContext("2d");
+      b.scale(dpr, dpr);
+      const ang = (-24 * Math.PI) / 180, cos = Math.cos(ang), sin = Math.sin(ang);
+      const cx = w * 0.5, cy = hgt * 0.5;
+      const n = Math.round(Math.min(3200, (w * hgt) / 420));
+      const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+      for (let i = 0; i < n; i++) {
+        const along = (Math.random() - 0.5) * (w + hgt) * 1.1;
+        const across = gauss() * hgt * 0.13;
+        const x = cx + along * cos - across * sin;
+        const y = cy + along * sin + across * cos;
+        const c = PALETTE[(Math.random() * PALETTE.length) | 0];
+        b.globalAlpha = 0.14 + Math.random() * 0.5;
+        b.fillStyle = rgb(c);
+        b.beginPath();
+        b.arc(x, y, Math.random() < 0.05 ? 1.15 : Math.random() * 0.65 + 0.22, 0, 6.2832);
+        b.fill();
+      }
     }
 
     function resize() {
@@ -124,39 +179,48 @@
       canvas.style.width = w + "px";
       canvas.style.height = hgt + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = Math.round(Math.min(340, Math.max(150, (w * hgt) / 6500)));
+      const count = Math.round(Math.min(520, Math.max(240, (w * hgt) / 3800)));
       stars = Array.from({ length: count }, () => spawn(true));
+      makeBand(dpr);
       if (reduceMotion) draw(16);
     }
 
     function draw(dt) {
       ctx.clearRect(0, 0, w, hgt);
+      if (band) { ctx.globalAlpha = 1; ctx.drawImage(band, 0, 0, w, hgt); }
       const cx = w / 2, cy = hgt / 2;
       const streaking = speed > 0.0004;
       for (let i = 0; i < stars.length; i++) {
         const s = stars[i];
         const oldZ = s.z;
         s.z -= speed * dt;
-        s.tw += dt * 0.0022;
+        s.tw += dt * s.tws;
         if (s.z <= 0.03) { stars[i] = spawn(false); continue; }
         const sx = cx + (s.x / s.z) * f * 0.55;
         const sy = cy + (s.y / s.z) * f * 0.55;
         if (sx < -40 || sx > w + 40 || sy < -40 || sy > hgt + 40) { stars[i] = spawn(false); continue; }
         const depth = 1 - s.z;
-        const size = 0.4 + depth * 1.9;
-        const twinkle = reduceMotion ? 1 : 0.7 + 0.3 * Math.sin(s.tw);
-        ctx.globalAlpha = Math.min(1, (0.3 + depth * 0.7) * twinkle);
-        ctx.strokeStyle = s.color;
-        ctx.fillStyle = s.color;
+        const size = (0.45 + depth * 1.8) * (s.big ? 1.45 : 1);
+        const twinkle = reduceMotion ? 1 : 0.62 + 0.38 * Math.sin(s.tw);
+        const alpha = Math.min(1, (0.3 + depth * 0.7) * twinkle);
+        const col = PALETTE[s.ci];
         if (streaking) {
           const ox = cx + (s.x / oldZ) * f * 0.55;
           const oy = cy + (s.y / oldZ) * f * 0.55;
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = rgb(col);
           ctx.lineWidth = size;
           ctx.beginPath();
           ctx.moveTo(ox, oy);
           ctx.lineTo(sx, sy);
           ctx.stroke();
         } else {
+          // quầng sáng mờ (chỉ vừa phải để không làm chói chữ), rồi lõi sáng ở giữa
+          const glow = size * (s.big ? 9 : 5);
+          ctx.globalAlpha = alpha * (s.big ? 0.75 : 0.45);
+          ctx.drawImage(sprites[s.ci], sx - glow, sy - glow, glow * 2, glow * 2);
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = rgb(col);
           ctx.beginPath();
           ctx.arc(sx, sy, size, 0, 6.2832);
           ctx.fill();
@@ -169,7 +233,7 @@
       const dt = Math.min(now - last, 60);
       last = now;
       speed += (target - speed) * (1 - Math.exp(-dt / 160));
-      draw(dt);
+      if (!document.hidden) draw(dt);
       requestAnimationFrame(frame);
     }
 
@@ -190,6 +254,41 @@
     return { start, warp };
   })();
 
+  /* --- Hành tinh bay lơ lửng: khi cuộn trang, chúng trôi chậm theo --- */
+  // Mỗi hành tinh có một "điểm bắt đầu" và "điểm kết thúc" (tính theo % chiều cao màn hình).
+  // Cuộn từ đầu đến cuối trang thì hành tinh trôi từ điểm bắt đầu đến điểm kết thúc, rất chậm.
+  const planets = (() => {
+    const route = [[10, 56], [74, 22], [38, 84], [88, 46]];
+    let ticking = false;
+    function update() {
+      ticking = false;
+      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const p = Math.min(1, Math.max(0, window.scrollY / max));
+      $$("#planets .planet").forEach((el, i) => {
+        const r = route[i % route.length];
+        el.style.setProperty("--py", (r[0] + (r[1] - r[0]) * p).toFixed(2) + "vh");
+      });
+    }
+    function request() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+    function start() {
+      update();
+      if (reduceMotion) return;
+      window.addEventListener("scroll", request, { passive: true });
+      window.addEventListener("resize", request);
+    }
+    return { start, update };
+  })();
+
+  /* --- Bấm vào đâu thì ngôi sao tại đó phát sáng --- */
+  function burst(x, y) {
+    if (reduceMotion) return;
+    const el = h("span", { class: "burst", "aria-hidden": "true", style: "left:" + x + "px;top:" + y + "px" });
+    for (let i = 0; i < 7; i++) el.append(h("i", { style: "--a:" + Math.round(i * (360 / 7) + Math.random() * 18) + "deg" }));
+    // Nếu thẻ nổi đang mở thì gắn vào đó, vì thẻ nổi nằm trên cùng của trang.
+    (document.getElementById("card").open ? document.getElementById("card") : document.body).append(el);
+    setTimeout(() => el.remove(), 800);
+  }
+
   /* === 4. Màn khảo sát ================================================== */
 
   function renderGate() {
@@ -205,7 +304,6 @@
       h("div", { class: "gate-inner" },
         h("img", { class: "gate-logo", src: IMG + "logo.png", alt: "", width: "96", height: "96" }),
         h("h1", { id: "gate-title", class: "gate-title" }, L.gateTitle),
-        h("p", { class: "gate-slogan" }, t().slogan),
         h("p", { class: "gate-question", id: "gate-question" }, L.gateQuestion),
         h("div", { class: "gate-options", role: "group", "aria-labelledby": "gate-question" },
           option("recruiter", L.gateRecruiter, L.gateRecruiterNote, "orbit"),
@@ -323,22 +421,14 @@
       }
     }, { rootMargin: "-45% 0px -50% 0px" });
     $$("main section[id]").forEach((s) => { if (s.id !== "top") spy.observe(s); });
+    planets.update();
   }
 
   /* --- Thanh kênh liên lạc bên trái --- */
-  function phoneText() { return SITE.phoneParts.join(" "); }
-  function phoneHref() { return "tel:+84" + SITE.phoneParts.join("").replace(/\D/g, "").replace(/^0/, ""); }
-
-  function revealPhone() {
-    const slot = $("#phone-slot");
-    if (!slot) return;
-    slot.replaceChildren(h("a", { class: "channel-link", href: phoneHref() }, phoneText()));
-  }
-
   function renderRail() {
     const C = t().contact.channels;
     const link = (href, label, inner, key) =>
-      h("a", { class: "rail-btn rail-" + key, href, target: href.startsWith("http") ? "_blank" : null, rel: "noopener", "aria-label": label, title: label }, inner);
+      h("a", { class: "rail-btn rail-" + key, href, target: href.startsWith("http") || key === "zalo" ? "_blank" : null, rel: "noopener", "aria-label": label, title: label }, inner);
     const glyph = (text) => h("span", { class: "glyph", "aria-hidden": "true" }, text);
     const rail = $("#rail");
     rail.setAttribute("aria-label", t().ui.railLabel);
@@ -346,10 +436,8 @@
       link(SITE.linkedin, C.linkedin, glyph("in"), "linkedin"),
       link(SITE.facebook, C.facebook, glyph("f"), "facebook"),
       link("mailto:" + SITE.email, C.email, svgBox("icon", ICON.mail), "mail"),
-      h("button", {
-        class: "rail-btn rail-phone", type: "button", "aria-label": C.phone, title: C.phone,
-        onclick: () => { goTo("contact"); revealPhone(); }
-      }, svgBox("icon", ICON.phone)));
+      // Zalo: mở một trang riêng có mã QR (zalo.html), giữ nguyên ngôn ngữ đang xem
+      link("zalo.html?lang=" + lang, C.zalo, glyph("Zalo"), "zalo"));
   }
 
   /* --- Phần đầu trang (hero) --- */
@@ -362,8 +450,10 @@
       h("div", { class: "wrap hero-grid" },
         h("div", { class: "hero-text" },
           h("h1", { id: "hero-name", class: "hero-name" }, SITE.shortName),
-          h("p", { class: "hero-slogan" }, T.slogan),
-          h("p", { class: "hero-sub" }, H.sub),
+          h("ul", { class: "hero-facts" }, H.facts.map((fact) =>
+            h("li", {},
+              svgBox("fact-icon", FACT_ICON[fact.icon]),
+              h("span", { class: "fact-text" }, fact.label ? h("b", {}, fact.label + ":") : null, fact.text)))),
           h("div", { class: "hero-cta" },
             cta(H.primary, "btn-primary"),
             cta(H.secondary, "btn-ghost"),
@@ -543,19 +633,9 @@
       h("button", { class: "btn btn-primary", type: "submit" }, F.send),
       h("p", { class: "form-status", role: "status", "aria-live": "polite" }));
 
-    const channel = (href, text, external) =>
-      h("li", {}, h("a", { class: "channel-link", href, target: external ? "_blank" : null, rel: "noopener" }, text));
-
-    const channels = h("div", { class: "panel channels" },
-      h("ul", { class: "channel-list" },
-        channel(SITE.linkedin, C.channels.linkedin, true),
-        channel(SITE.facebook, C.channels.facebook, true),
-        channel("mailto:" + SITE.email, SITE.email, false),
-        h("li", { id: "phone-slot" }, h("button", { class: "channel-link as-button", type: "button", onclick: revealPhone }, C.showPhone))),
-      isRecruiter && SITE.cvFile ? h("a", { class: "btn btn-ghost", href: SITE.cvFile, download: "" }, t().ui.cv) : null);
-
     return section("contact", isRecruiter ? C.titleRecruiter : C.titleOther, isRecruiter ? C.introRecruiter : C.introOther,
-      h("div", { class: "contact-grid" }, form, channels));
+      h("div", { class: "contact-grid" }, form,
+        isRecruiter && SITE.cvFile ? h("a", { class: "btn btn-ghost", href: SITE.cvFile, download: "" }, t().ui.cv) : null));
   }
 
   async function submitForm(event) {
@@ -563,6 +643,8 @@
     const form = event.currentTarget;
     const F = t().contact.form;
     const status = $(".form-status", form);
+    const sent = view === "recruiter" ? F.sentRecruiter : F.sentOther;
+    const failed = view === "recruiter" ? F.failedRecruiter : F.failedOther;
     const button = $("button[type=submit]", form);
     status.className = "form-status";
     status.textContent = "";
@@ -570,7 +652,7 @@
 
     const data = Object.fromEntries(new FormData(form));
     if (data.company) { // bot điền vào ô bẫy: giả vờ thành công rồi bỏ qua
-      status.textContent = F.sent;
+      status.textContent = sent;
       form.reset();
       return;
     }
@@ -589,11 +671,11 @@
           body: JSON.stringify(data)
         });
         if (!res.ok) throw new Error("HTTP " + res.status);
-        status.textContent = F.sent;
+        status.textContent = sent;
         status.classList.add("is-ok");
         form.reset();
       } catch (err) {
-        status.textContent = F.failed;
+        status.textContent = failed;
         status.classList.add("is-error");
       } finally {
         button.disabled = false;
@@ -617,6 +699,8 @@
 
   function init() {
     sky.start();
+    planets.start();
+    document.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse" || e.button === 0) burst(e.clientX, e.clientY); }, { passive: true });
     applyLanguageToDocument();
 
     $("#brand").addEventListener("click", () => goTo("top"));
