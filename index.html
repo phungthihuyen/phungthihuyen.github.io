@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phùng Huyền | Portfolio</title>
+  <meta name="description" content="Portfolio của Phùng Thị Huyền, sinh viên Quản trị Kinh doanh Quốc tế, Đại học Ngoại thương.">
+  <meta name="theme-color" content="#04050d">
+  <meta property="og:title" content="Phùng Huyền | Portfolio">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <a id="skip-link" class="skip" href="#main"></a>
+
+  <!-- Nền bầu trời sao (vẽ bằng canvas) -->
+  <canvas id="sky" aria-hidden="true"></canvas>
+
+  <!-- Màn khảo sát đầu trang: nội dung do assets/js/main.js dựng -->
+  <div id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title"></div>
+
+  <!-- Toàn bộ trang chính: ẩn cho đến khi người xem chọn đối tượng -->
+  <div id="site" hidden>
+    <header class="topbar">
+      <button id="brand" class="brand" type="button">
+        <img src="assets/img/logo.png" alt="" width="42" height="42">
+        <span id="brand-name"></span>
+      </button>
+      <nav id="nav" class="nav"></nav>
+      <div class="tools">
+        <button id="switch-view" class="ghost-btn" type="button"></button>
+        <button id="lang-toggle" class="lang-btn" type="button"></button>
+      </div>
+    </header>
+
+    <!-- Cột kênh liên lạc bên trái, đi theo khi cuộn -->
+    <aside id="rail" class="rail"></aside>
+
+    <main id="main" tabindex="-1"></main>
+
+    <footer class="site-footer"><p id="footer-text"></p></footer>
+  </div>
+
+  <!-- Thẻ nổi: bấm vào một mục sẽ mở ở đây -->
+  <dialog id="card"></dialog>
+
+  <noscript><p style="position:relative;z-index:5;color:#fff;padding:2rem;text-align:center">Trang này cần bật JavaScript để hiển thị. / This page needs JavaScript.</p></noscript>
+
+  <script src="assets/js/content.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
