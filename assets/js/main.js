@@ -279,266 +279,6 @@
     return { start, update };
   })();
 
-
-  /* --- Hành tinh "thật": tự vẽ bề mặt bằng canvas (dải mây, bão, ánh sáng, quầng khí quyển) --- */
-  const planetArt = (() => {
-    // Nhiễu giá trị 3D: tạo các vệt mây tự nhiên, không cần ảnh có sẵn.
-    function hash(x, y, z) {
-      let n = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(z, 1274126177);
-      n = Math.imul(n ^ (n >>> 13), 1274126177);
-      return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
-    }
-    const fade = (t) => t * t * (3 - 2 * t);
-    const mix = (a, b, t) => a + (b - a) * t;
-    function noise(x, y, z) {
-      const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
-      const u = fade(x - xi), v = fade(y - yi), w = fade(z - zi);
-      return mix(
-        mix(mix(hash(xi, yi, zi), hash(xi + 1, yi, zi), u), mix(hash(xi, yi + 1, zi), hash(xi + 1, yi + 1, zi), u), v),
-        mix(mix(hash(xi, yi, zi + 1), hash(xi + 1, yi, zi + 1), u), mix(hash(xi, yi + 1, zi + 1), hash(xi + 1, yi + 1, zi + 1), u), v), w);
-    }
-    function fbm(x, y, z, oct) {
-      let a = 0.5, s = 0;
-      for (let i = 0; i < oct; i++) { s += a * noise(x, y, z); x *= 2.03; y *= 2.03; z *= 2.03; a *= 0.5; }
-      return s;
-    }
-    function palette(stops, t) {
-      t = Math.min(1, Math.max(0, t));
-      for (let i = 1; i < stops.length; i++) {
-        if (t <= stops[i][0]) {
-          const k = (t - stops[i - 1][0]) / (stops[i][0] - stops[i - 1][0] || 1);
-          const a = stops[i - 1][1], b = stops[i][1];
-          return [mix(a[0], b[0], k), mix(a[1], b[1], k), mix(a[2], b[2], k)];
-        }
-      }
-      return stops[stops.length - 1][1];
-    }
-
-    // Mỗi hành tinh: kích thước (px), bảng màu, số dải mây, độ xoáy, nghiêng, có bão không, quầng sáng
-    const SPECS = {
-      saturn: { size: 150, seed: 3, bands: 9, turb: 0.55, tilt: -18, stretch: 4,
-        pal: [[0, [120, 88, 52]], [0.25, [196, 154, 96]], [0.5, [232, 205, 150]], [0.75, [210, 172, 112]], [1, [246, 228, 186]]],
-        rim: [255, 214, 150], ring: { tilt: -18, inner: 0.64, outer: 1.0, scale: 2.45, color: [226, 200, 150] } },
-      jupiter: { size: 96, seed: 7, bands: 7, turb: 0.9, tilt: 0, stretch: 5, storm: [0.28, 0.32],
-        pal: [[0, [112, 70, 44]], [0.22, [186, 120, 76]], [0.45, [238, 222, 196]], [0.7, [201, 146, 98]], [1, [246, 238, 220]]],
-        rim: [255, 200, 140] },
-      ice: { size: 80, seed: 11, bands: 4, turb: 0.25, tilt: 20, stretch: 3,
-        pal: [[0, [20, 120, 150]], [0.5, [70, 200, 220]], [1, [170, 240, 248]]],
-        rim: [140, 235, 255], ring: { tilt: 20, inner: 0.78, outer: 1.0, scale: 2.2, color: [180, 236, 246], thin: true } },
-      venus: { size: 46, seed: 5, bands: 3, turb: 1.3, tilt: 0, stretch: 2.2,
-        pal: [[0, [150, 100, 52]], [0.5, [224, 170, 98]], [1, [248, 214, 150]]],
-        rim: [255, 205, 140] }
-    };
-
-    function drawSphere(spec, px) {
-      const c = document.createElement("canvas");
-      c.width = c.height = px;
-      const ctx = c.getContext("2d");
-      const img = ctx.createImageData(px, px);
-      const d = img.data;
-      const ta = (spec.tilt * Math.PI) / 180, ct = Math.cos(ta), st = Math.sin(ta);
-      const L = [-0.55, -0.5, 0.67];
-      const ln = Math.hypot(L[0], L[1], L[2]); L[0] /= ln; L[1] /= ln; L[2] /= ln;
-      const s0 = spec.seed;
-      for (let j = 0; j < px; j++) {
-        for (let i = 0; i < px; i++) {
-          const nx = ((i + 0.5) / px) * 2 - 1, ny = ((j + 0.5) / px) * 2 - 1;
-          const r2 = nx * nx + ny * ny;
-          const o = (j * px + i) * 4;
-          if (r2 >= 1) { d[o + 3] = 0; continue; }
-          const nz = Math.sqrt(1 - r2);
-          // Quay hệ toạ độ để dải mây nghiêng giống vành đai
-          const x = nx * ct + ny * st, y = -nx * st + ny * ct;
-          let w = fbm(x * 2.4 + s0, y * 2.4 * 2, nz * 2.4, 4);
-          let v = y * spec.bands * 1.4 + (w - 0.5) * spec.turb * 5;
-          let t = 0.5 + 0.5 * Math.sin(v * 2.2);
-          t = mix(t, fbm(x * 3 + s0, y * 3 * spec.stretch, nz * 3, 5), 0.35);
-          let col = palette(spec.pal, t);
-          if (spec.storm) {
-            const sx = (x - spec.storm[0]) / 0.2, sy = (y - spec.storm[1]) / 0.1;
-            const sd = Math.exp(-(sx * sx + sy * sy));
-            const sc = [196, 84, 52];
-            col = [mix(col[0], sc[0], sd * 0.9), mix(col[1], sc[1], sd * 0.9), mix(col[2], sc[2], sd * 0.9)];
-          }
-          const diff = Math.max(0, nx * L[0] + ny * L[1] + nz * L[2]);
-          let shade = 0.07 + 1.0 * Math.pow(diff, 0.85);
-          shade *= 0.55 + 0.45 * nz;
-          const rim = Math.pow(1 - nz, 3) * Math.min(1, diff * 1.6 + 0.15) * 0.75;
-          const rimC = spec.rim;
-          d[o] = Math.min(255, col[0] * shade + rimC[0] * rim);
-          d[o + 1] = Math.min(255, col[1] * shade + rimC[1] * rim);
-          d[o + 2] = Math.min(255, col[2] * shade + rimC[2] * rim);
-          // mép mượt (khử răng cưa)
-          d[o + 3] = Math.min(255, (1 - Math.sqrt(r2)) * px * 0.5 * 255);
-        }
-      }
-      ctx.putImageData(img, 0, 0);
-      return c;
-    }
-
-    function drawRing(spec, px) {
-      const R = spec.ring;
-      const W = Math.round(px * R.scale), H = Math.round(px * R.scale * 0.5);
-      const c = document.createElement("canvas");
-      c.width = W; c.height = H;
-      const ctx = c.getContext("2d");
-      const cx = W / 2, cy = H / 2, a = W / 2 - 2, b = a * 0.3;
-      const steps = R.thin ? 6 : 90;
-      for (let i = 0; i < steps; i++) {
-        const f = i / steps;
-        const rad = mix(R.inner, R.outer, f);
-        let alpha = R.thin ? (i % 3 === 0 ? 0.7 : 0.25) : 0.25 + 0.6 * noise(f * 22, spec.seed, 1.7);
-        if (!R.thin && f > 0.58 && f < 0.66) alpha *= 0.08;   // khe hở như vành đai thật
-        if (!R.thin && f > 0.9) alpha *= 0.5;
-        const k = 0.78 + 0.3 * noise(f * 30, 3, 9);
-        ctx.strokeStyle = "rgba(" + Math.round(R.color[0] * k) + "," + Math.round(R.color[1] * k) + "," + Math.round(R.color[2] * k) + "," + alpha.toFixed(3) + ")";
-        ctx.lineWidth = R.thin ? 1.6 : (a * (R.outer - R.inner)) / steps * 1.5;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, a * rad, b * rad, 0, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-      return c;
-    }
-
-    function build() {
-      const map = { p1: "saturn", p2: "jupiter", p3: "ice", p4: "venus" };
-      Object.keys(map).forEach((cls) => {
-        const el = $("#planets ." + cls);
-        if (!el) return;
-        const spec = SPECS[map[cls]];
-        const body = $(".planet-body", el);
-        const px = Math.min(380, Math.round(spec.size * 2.2));
-        const sphere = drawSphere(spec, px);
-        sphere.className = "sphere";
-        body.style.setProperty("--size", spec.size + "px");
-        body.style.setProperty("--glow", "rgba(" + spec.rim.join(",") + ",0.35)");
-        const old = $(".sphere", body);
-        if (old) old.replaceWith(sphere); else body.append(sphere);
-        if (spec.ring) {
-          [["ring ring-back", false], ["ring ring-front", true]].forEach(([cn]) => {
-            const rc = drawRing(spec, spec.size);
-            rc.className = cn;
-            rc.style.setProperty("--rot", spec.ring.tilt + "deg");
-            body.append(rc);
-          });
-        }
-      });
-    }
-    return { build };
-  })();
-
-  /* --- Hố đen: nuốt mục đang xem, rồi nhả ra mục tiếp theo --- */
-  const hole = (() => {
-    const cv = document.createElement("canvas");
-    cv.id = "hole"; cv.setAttribute("aria-hidden", "true");
-    document.body.append(cv);
-    const ctx = cv.getContext("2d");
-    let W = 0, H = 0, dpr = 1, raf = 0, busy = false, last = 0, pending = null;
-    const parts = Array.from({ length: 190 }, () => ({ a: Math.random() * 6.283, r: 0.25 + Math.random() * 1.1, s: 0.6 + Math.random() * 1.2, h: Math.random() }));
-    function size() {
-      dpr = Math.min(window.devicePixelRatio || 1, 1.6);
-      W = cv.width = Math.round(window.innerWidth * dpr);
-      H = cv.height = Math.round(window.innerHeight * dpr);
-    }
-    const ease = (t) => t * t * (3 - 2 * t);
-
-    // s: độ lớn của hố đen (0 → 1); time: để cánh đĩa quay
-    function draw(s, time) {
-      ctx.clearRect(0, 0, W, H);
-      if (s <= 0.001) return;
-      const cx = W / 2, cy = H / 2, m = Math.min(W, H);
-      const R = m * 0.17 * s;                  // bán kính vùng đen
-      // 1) Màn tối dần về tâm
-      const dark = ctx.createRadialGradient(cx, cy, R * 0.6, cx, cy, Math.max(W, H) * 0.75 * (0.35 + 0.65 * s));
-      dark.addColorStop(0, "rgba(2,1,8," + (0.97 * Math.min(1, s * 1.4)).toFixed(3) + ")");
-      dark.addColorStop(0.5, "rgba(8,3,24," + (0.55 * s).toFixed(3) + ")");
-      dark.addColorStop(1, "rgba(8,3,24,0)");
-      ctx.fillStyle = dark; ctx.fillRect(0, 0, W, H);
-      // 2) Hạt vật chất bị hút theo hình xoắn ốc
-      ctx.globalCompositeOperation = "lighter";
-      for (const p of parts) {
-        const rr = (p.r * m * 0.5 * (1.15 - 0.55 * s)) % (m * 0.6) + R * 1.1;
-        const ang = p.a + (time * 0.0016 * p.s) * (1.6 + 140 / Math.max(40, rr / dpr));
-        const x = cx + Math.cos(ang) * rr, y = cy + Math.sin(ang) * rr * 0.62;
-        const tt = Math.min(1, R * 1.1 / rr * 1.4 + 0.15);
-        const hue = 20 + p.h * 280;
-        ctx.fillStyle = "hsla(" + hue + ",95%,68%," + (0.55 * s * tt).toFixed(3) + ")";
-        ctx.beginPath(); ctx.arc(x, y, (1.1 + 1.6 * tt) * dpr, 0, 6.283); ctx.fill();
-      }
-      // 3) Đĩa bồi tụ: các vòng sáng cam – hồng – tím
-      ctx.save();
-      ctx.translate(cx, cy); ctx.rotate(-0.22); ctx.scale(1, 0.34);
-      for (let i = 0; i < 6; i++) {
-        const rr = R * (1.25 + i * 0.32), alpha = (0.75 - i * 0.11) * s;
-        const g = ctx.createRadialGradient(0, 0, rr * 0.86, 0, 0, rr * 1.1);
-        g.addColorStop(0, "rgba(255,170,70,0)");
-        g.addColorStop(0.5, i < 2 ? "rgba(255,196,110," + alpha.toFixed(3) + ")" : i < 4 ? "rgba(255,92,170," + alpha.toFixed(3) + ")" : "rgba(130,90,255," + alpha.toFixed(3) + ")");
-        g.addColorStop(1, "rgba(80,40,200,0)");
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rr * 1.1, 0, 6.283); ctx.fill();
-      }
-      ctx.restore();
-      ctx.globalCompositeOperation = "source-over";
-      // 4) Vành photon + lõi đen
-      const ring = ctx.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.35);
-      ring.addColorStop(0, "rgba(255,240,210,0)");
-      ring.addColorStop(0.42, "rgba(255,226,170," + (0.95 * s).toFixed(3) + ")");
-      ring.addColorStop(1, "rgba(255,120,60,0)");
-      ctx.fillStyle = ring; ctx.beginPath(); ctx.arc(cx, cy, R * 1.35, 0, 6.283); ctx.fill();
-      ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.fill();
-    }
-
-    function run(duration, curve, onFrame) {
-      return new Promise((resolve) => {
-        const t0 = performance.now();
-        (function tick(now) {
-          const k = Math.min(1, (now - t0) / duration);
-          draw(curve(k), now);
-          if (onFrame) onFrame(k);
-          if (k < 1) raf = requestAnimationFrame(tick); else resolve();
-        })(t0);
-      });
-    }
-
-    // Chuyển mục kiểu "nuốt chửng": mục cũ xoáy vào hố đen → nhảy tới mục mới → mục mới trào ra
-    async function swallow(jump) {
-      const main = document.getElementById("main");
-      if (busy) { pending = jump; return; }
-      busy = true; last = performance.now();
-      document.documentElement.style.overflowX = "hidden";
-      const origin = () => "50% " + (window.scrollY + window.innerHeight / 2) + "px";
-      main.style.transformOrigin = origin();
-      const out = main.animate(
-        [{ transform: "none", opacity: 1 }, { transform: "rotate(16deg) scale(0.12)", opacity: 0 }],
-        { duration: 650, easing: "cubic-bezier(0.55, 0, 0.9, 0.45)", fill: "forwards" });
-      await run(650, (k) => ease(Math.pow(k, 0.8)));
-      out.cancel();                       // bỏ hiệu ứng thu nhỏ trước, để đo vị trí mục đích cho đúng
-      main.style.transformOrigin = "";
-      (pending || jump)(); pending = null;
-      main.style.transformOrigin = origin();
-      const inn = main.animate(
-        [{ transform: "rotate(-14deg) scale(1.7)", opacity: 0 }, { transform: "none", opacity: 1 }],
-        { duration: 750, easing: "cubic-bezier(0.1, 0.6, 0.2, 1)" });
-      await run(750, (k) => 1 - ease(Math.min(1, k * 1.15)));
-      inn.cancel();
-      draw(0, 0);
-      main.style.transformOrigin = "";
-      document.documentElement.style.overflowX = "";
-      busy = false; last = performance.now();
-    }
-
-    // Khi đang cuộn tay sang mục khác: hố đen xuất hiện thoáng qua, không chặn việc cuộn
-    async function pulse() {
-      if (busy || performance.now() - last < 1600) return;
-      busy = true; last = performance.now();
-      await run(900, (k) => 0.62 * Math.sin(Math.PI * Math.min(1, k)));
-      draw(0, 0);
-      busy = false; last = performance.now();
-    }
-    window.addEventListener("resize", size);
-    size();
-    return { swallow, pulse, isBusy: () => busy };
-  })();
-
   /* --- Bấm vào đâu thì ngôi sao tại đó phát sáng --- */
   function burst(x, y) {
     if (reduceMotion) return;
@@ -659,31 +399,17 @@
   function goTo(id) {
     const el = document.getElementById(id);
     if (!el) return;
-    const jump = () => {
-      window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - (id === "top" ? 0 : headerHeight())), behavior: "instant" });
-      el.focus({ preventScroll: true });
-    };
-    if (reduceMotion) { el.scrollIntoView({ behavior: "auto", block: "start" }); el.focus({ preventScroll: true }); return; }
-    hole.swallow(jump);
-  }
-  function headerHeight() {
-    const tb = document.querySelector(".topbar");
-    return tb ? tb.getBoundingClientRect().height : 0;
+    el.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    el.focus({ preventScroll: true });
   }
 
   // Đánh dấu mục đang xem trên thanh menu khi người xem cuộn trang.
-  let spy = null, lastSection = null;
+  let spy = null;
   function watchSections() {
     if (spy) spy.disconnect();
-    lastSection = null;
     spy = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
-        if (lastSection && lastSection !== entry.target.id && !reduceMotion && !hole.isBusy()) {
-          hole.pulse();
-          entry.target.animate([{ opacity: 0.25, transform: "translateY(34px) scale(0.97)" }, { opacity: 1, transform: "none" }], { duration: 800, easing: "cubic-bezier(0.1, 0.6, 0.2, 1)" });
-        }
-        lastSection = entry.target.id;
         $$(".nav-btn").forEach((btn) => {
           const on = btn.dataset.target === entry.target.id;
           btn.classList.toggle("is-active", on);
@@ -974,7 +700,6 @@
   function init() {
     sky.start();
     planets.start();
-    planetArt.build();
     document.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse" || e.button === 0) burst(e.clientX, e.clientY); }, { passive: true });
     applyLanguageToDocument();
 
